@@ -2,17 +2,11 @@ package com.nubank.parser;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.nubank.model.CreateAccount;
-import com.nubank.model.Operation;
-import com.nubank.model.Transaction;
+import com.nubank.operations.Operation;
+import com.nubank.operations.create.account.CreateAccount;
+import com.nubank.operations.transaction.Transaction;
 
 public class OperationParser {
-	
-	private Gson gson;
-	
-	public OperationParser() {
-		this.gson = new Gson();
-	}
 	
 	public Operation parse(String operation) {
 		JsonObject operationAsJson = convertOperationAsStringToJson(operation);
@@ -25,7 +19,7 @@ public class OperationParser {
 	}
 
 	private JsonObject convertOperationAsStringToJson(String operation) {
-		return gson.fromJson(operation, JsonObject.class);
+		return new Gson().fromJson(operation, JsonObject.class);
 	}
 	
 	private boolean isCreateAccountOperation(JsonObject operationAsJson) {

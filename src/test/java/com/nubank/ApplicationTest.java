@@ -1,6 +1,7 @@
 package com.nubank;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -11,9 +12,11 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.nubank.model.CreateAccount;
-import com.nubank.model.Operation;
-import com.nubank.model.Transaction;
+import com.nubank.authorizer.Authorizer;
+import com.nubank.authorizer.specification.AuthorizerSpecifications;
+import com.nubank.operations.Operation;
+import com.nubank.operations.create.account.CreateAccount;
+import com.nubank.operations.transaction.Transaction;
 import com.nubank.parser.DateUtils;
 import com.nubank.parser.OperationParser;
 
@@ -34,35 +37,70 @@ public class ApplicationTest {
 			"{\"transaction\": {\"merchant\": \"Habbib's\", \"amount\": 90, \"time\": \"2019-02-13T11:00:00.000Z\"}}",
 			"{\"transaction\": {\"merchant\": \"McDonald's\", \"amount\": 30, \"time\": \"2019-02-13T12:00:00.000Z\"}}"
 		);
-
-		List<Operation> operations = new ArrayList<>();
 		
-		operationsInput.stream().forEach(operation -> operations.add(operationParser.parse(operation)));
+		List<Operation> operations = loadOperations(operationsInput);
 		
 		assertNotNull(operations);
 		
-		assertEquals("com.nubank.model.CreateAccount", operations.get(0).getClass().getName());
+		assertEquals("com.nubank.operations.create.account.CreateAccount", operations.get(0).getClass().getName());
 		CreateAccount createAccount = (CreateAccount) operations.get(0);
 		assertTrue(createAccount.isActive_card());
 		assertEquals(100, createAccount.getAvailable_limit());
 		
-		assertEquals("com.nubank.model.Transaction", operations.get(1).getClass().getName());
+		assertEquals("com.nubank.operations.transaction.Transaction", operations.get(1).getClass().getName());
 		Transaction firstTransaction = (Transaction) operations.get(1);
 		assertEquals("Burger King", firstTransaction.getMerchant());
 		assertEquals(20, firstTransaction.getAmount());
 		assertEquals(DateUtils.convertStringToDate("2019-02-13T10:00:00.000Z"), firstTransaction.getTime());
 		
-		assertEquals("com.nubank.model.Transaction", operations.get(2).getClass().getName());
+		assertEquals("com.nubank.operations.transaction.Transaction", operations.get(2).getClass().getName());
 		Transaction secondTransaction = (Transaction) operations.get(2);
 		assertEquals("Habbib's", secondTransaction.getMerchant());
 		assertEquals(90, secondTransaction.getAmount());
 		assertEquals(DateUtils.convertStringToDate("2019-02-13T11:00:00.000Z"), secondTransaction.getTime());
 		
-		assertEquals("com.nubank.model.Transaction", operations.get(3).getClass().getName());
+		assertEquals("com.nubank.operations.transaction.Transaction", operations.get(3).getClass().getName());
 		Transaction thirdTransaction = (Transaction) operations.get(3);
 		assertEquals("McDonald's", thirdTransaction.getMerchant());
 		assertEquals(30, thirdTransaction.getAmount());
 		assertEquals(DateUtils.convertStringToDate("2019-02-13T12:00:00.000Z"), thirdTransaction.getTime());
+	}
+	
+	@Test
+	public void assertThatOneAccountIsCreatedWithSuccess() {
+		List<String> operationsInput = Arrays.asList(
+			"{\"account\": {\"active-card\": false, \"available-limit\": 750}}"
+		);
+
+		List<Operation> operations = loadOperations(operationsInput);
+		
+		assertNotNull(operations);
+		assertTrue(operations.stream().noneMatch((o -> o.getViolations().size() > 0)));
+	}
+	
+	@Test
+	public void assertThatOnlyOneAccountIsCreatedWithSuccess() {
+		List<String> operationsInput = Arrays.asList(
+			"{\"account\": {\"active-card\": true, \"available-limit\": 175}}",
+			"{\"account\": {\"active-card\": true, \"available-limit\": 350}}"
+		);
+
+		List<Operation> operations = loadOperations(operationsInput);
+		
+		Authorizer authorizer = new Authorizer(
+			new AuthorizerSpecifications()
+		);
+		
+		authorizer.applyValidations(operations);
+		
+		assertFalse(operations.stream().noneMatch((o -> o.getViolations().size() > 0)));
+	}
+
+	private List<Operation> loadOperations(List<String> operationsInput) {
+		List<Operation> operations = new ArrayList<>(operationsInput.size());
+		operationsInput.stream().forEach(operation -> operations.add(operationParser.parse(operation)));
+		
+		return operations;
 	}
 	
 }
