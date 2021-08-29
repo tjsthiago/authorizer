@@ -8,20 +8,20 @@ import java.util.List;
 
 import com.nubank.account.Account;
 import com.nubank.authorizer.Authorizer;
-import com.nubank.authorizer.specification.AuthorizerSpecifications;
-import com.nubank.authorizer.specification.SpecificationBuilder;
+import com.nubank.authorizer.specification.AuthorizerSpecificationsBuilder;
+import com.nubank.authorizer.specification.SpecificationsBuilder;
 import com.nubank.operations.Operation;
 import com.nubank.parser.OperationParser;
 
 public class Application {
 	private OperationParser operationParser;
-	private SpecificationBuilder specification;
+	private SpecificationsBuilder specification;
 	private Authorizer authorizer;
 	private Account account;
 	
 	public Application() {
 		operationParser = new OperationParser();
-		specification = new AuthorizerSpecifications();
+		specification = new AuthorizerSpecificationsBuilder();
 		account = new Account();
 		authorizer = new Authorizer(specification, account);
 	}

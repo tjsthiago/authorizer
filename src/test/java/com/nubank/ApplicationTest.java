@@ -15,7 +15,7 @@ import org.junit.Test;
 
 import com.nubank.account.Account;
 import com.nubank.authorizer.Authorizer;
-import com.nubank.authorizer.specification.AuthorizerSpecifications;
+import com.nubank.authorizer.specification.AuthorizerSpecificationsBuilder;
 import com.nubank.operations.Operation;
 import com.nubank.operations.create.account.CreateAccount;
 import com.nubank.operations.transaction.Transaction;
@@ -79,7 +79,7 @@ public class ApplicationTest {
 		Account account = new Account();
 		
 		Authorizer authorizer = new Authorizer(
-			new AuthorizerSpecifications(),
+			new AuthorizerSpecificationsBuilder(),
 			account
 		);
 		
@@ -103,7 +103,7 @@ public class ApplicationTest {
 		Account account = new Account();
 		
 		Authorizer authorizer = new Authorizer(
-			new AuthorizerSpecifications(),
+			new AuthorizerSpecificationsBuilder(),
 			account
 		);
 		
@@ -129,7 +129,7 @@ public class ApplicationTest {
 		Account account = new Account();
 		
 		Authorizer authorizer = new Authorizer(
-			new AuthorizerSpecifications(),
+			new AuthorizerSpecificationsBuilder(),
 			account
 		);
 		
@@ -153,7 +153,7 @@ public class ApplicationTest {
 		Account account = new Account();
 		
 		Authorizer authorizer = new Authorizer(
-			new AuthorizerSpecifications(),
+			new AuthorizerSpecificationsBuilder(),
 			account
 		);
 		
@@ -165,6 +165,33 @@ public class ApplicationTest {
 		assertTrue(operations.get(1).getViolations().isEmpty());
 		assertTrue(operations.get(2).getViolations().isEmpty());
 		assertEquals(200, account.getAvailableLimit());
+	}
+	
+	@Test
+	public void givenAnAccountWithDisableCardAndAtransactionWithAmountLessThanAccountAvailableCreditDoNotAllowTransactions() {
+		List<String> operationsInput = Arrays.asList(
+			"{\"account\": {\"active-card\": false, \"available-limit\": 100}}",
+			"{\"transaction\": {\"merchant\": \"Burger King\", \"amount\": 20, \"time\": \"2019-02-13T11:00:00.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"Habbib's\", \"amount\": 15, \"time\": \"2019-02-13T11:15:00.000Z\"}}"
+		);
+
+		List<Operation> operations = loadOperations(operationsInput);
+		
+		Account account = new Account();
+		
+		Authorizer authorizer = new Authorizer(
+			new AuthorizerSpecificationsBuilder(),
+			account
+		);
+		
+		authorizer.applyValidations(operations);
+		Optional<String> transactionOneViolation = getViolationByRestriction(operations.get(1), "card-not-active");
+		Optional<String> transactionTwoiolation = getViolationByRestriction(operations.get(2), "card-not-active");
+		
+		assertNotNull(operations);
+		assertTrue(transactionOneViolation.isPresent());
+		assertTrue(transactionTwoiolation.isPresent());
+		
 	}
 
 	private List<Operation> loadOperations(List<String> operationsInput) {

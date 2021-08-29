@@ -5,12 +5,13 @@ import java.util.Set;
 
 import com.nubank.authorizer.specification.impl.AllowOnlyOneAccountSpecification;
 import com.nubank.authorizer.specification.impl.AllowTransactionOnlyAfterAccountInitializationSpecification;
+import com.nubank.authorizer.specification.impl.AllowTransactionOnlyWhenAccountHasActiveCardSpecification;
 
-public class AuthorizerSpecifications implements SpecificationBuilder{
+public class AuthorizerSpecificationsBuilder implements SpecificationsBuilder{
 
 	private Set<Specification> specifications;
 	
-	public AuthorizerSpecifications() {
+	public AuthorizerSpecificationsBuilder() {
 		specifications = new HashSet<>();
 	}
 	
@@ -18,6 +19,7 @@ public class AuthorizerSpecifications implements SpecificationBuilder{
 	public Set<Specification> getOperationsSpecifications() {
 		specifications.add(new AllowOnlyOneAccountSpecification());
 		specifications.add(new AllowTransactionOnlyAfterAccountInitializationSpecification());
+		specifications.add(new AllowTransactionOnlyWhenAccountHasActiveCardSpecification());
 		
 		return specifications;
 	}

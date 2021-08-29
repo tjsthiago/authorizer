@@ -4,16 +4,16 @@ import java.util.List;
 import java.util.Optional;
 
 import com.nubank.account.Account;
-import com.nubank.authorizer.specification.SpecificationBuilder;
+import com.nubank.authorizer.specification.SpecificationsBuilder;
 import com.nubank.operations.Operation;
 import com.nubank.operations.create.account.CreateAccount;
 import com.nubank.operations.transaction.Transaction;
 
 public class Authorizer {
 	private Account account;
-	private SpecificationBuilder specificationConfiguration;
+	private SpecificationsBuilder specificationConfiguration;
 	
-	public Authorizer(SpecificationBuilder specificationConfiguration, Account account) {
+	public Authorizer(SpecificationsBuilder specificationConfiguration, Account account) {
 		this.specificationConfiguration = specificationConfiguration;
 		this.account = account;
 	}
