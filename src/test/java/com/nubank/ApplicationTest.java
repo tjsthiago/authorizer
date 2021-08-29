@@ -186,12 +186,42 @@ public class ApplicationTest {
 		
 		authorizer.applyValidations(operations);
 		Optional<String> transactionOneViolation = getViolationByRestriction(operations.get(1), "card-not-active");
-		Optional<String> transactionTwoiolation = getViolationByRestriction(operations.get(2), "card-not-active");
+		Optional<String> transactionTwoViolation = getViolationByRestriction(operations.get(2), "card-not-active");
 		
 		assertNotNull(operations);
 		assertTrue(transactionOneViolation.isPresent());
-		assertTrue(transactionTwoiolation.isPresent());
+		assertTrue(transactionTwoViolation.isPresent());
 		
+	}
+	
+	@Test
+	public void givenAnAccountWithInsufficientLimitDoNotAllowTransactions() {
+		List<String> operationsInput = Arrays.asList(
+			"{\"account\": {\"active-card\": true, \"available-limit\": 1000}}",
+			"{\"transaction\": {\"merchant\": \"Vivara\", \"amount\": 1250, \"time\": \"2019-02-13T11:00:00.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"Samsung\", \"amount\": 2500, \"time\": \"2019-02-13T11:00:01.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"Nike\", \"amount\": 800, \"time\": \"2019-02-13T11:01:01.000Z\"}}"
+		);
+
+		List<Operation> operations = loadOperations(operationsInput);
+		
+		Account account = new Account();
+		
+		Authorizer authorizer = new Authorizer(
+			new AuthorizerSpecificationsBuilder(),
+			account
+		);
+		
+		authorizer.applyValidations(operations);
+		Optional<String> transactionOneViolation = getViolationByRestriction(operations.get(1), "insufficient-limit");
+		Optional<String> transactionTwoViolation = getViolationByRestriction(operations.get(2), "insufficient-limit");
+		Optional<String> transactionThreeViolation = getViolationByRestriction(operations.get(3), "insufficient-limit");
+		
+		assertNotNull(operations);
+		assertTrue(transactionOneViolation.isPresent());
+		assertTrue(transactionTwoViolation.isPresent());
+		assertFalse(transactionThreeViolation.isPresent());
+		assertEquals(200, account.getAvailableLimit());
 	}
 
 	private List<Operation> loadOperations(List<String> operationsInput) {
