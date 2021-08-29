@@ -1,28 +1,76 @@
 package com.nubank.authorizer;
 
 import java.util.List;
+import java.util.Optional;
 
+import com.nubank.account.Account;
 import com.nubank.authorizer.specification.SpecificationBuilder;
 import com.nubank.operations.Operation;
+import com.nubank.operations.create.account.CreateAccount;
+import com.nubank.operations.transaction.Transaction;
 
 public class Authorizer {
+	private Account account;
 	private SpecificationBuilder specificationConfiguration;
 	
-	public Authorizer(SpecificationBuilder specificationConfiguration) {
+	public Authorizer(SpecificationBuilder specificationConfiguration, Account account) {
 		this.specificationConfiguration = specificationConfiguration;
+		this.account = account;
 	}
 
 	public void applyValidations(List<Operation> operations) {
 		specificationConfiguration
 			.getOperationsSpecifications()
 			.stream()
-			.forEach(s -> s.aplyValidations(operations));
+			.forEach(s -> s.applyValidatons(operations));
 		
-		showValidationResult(operations);
+		processOperations(operations);
+		
 	}
 	
-	private void showValidationResult(List<Operation> operations) {
-		operations.stream().forEach(Operation::showValidationResult);
+	private void processOperations(List<Operation> operations) {
+		for (Operation operation : operations) {
+			
+			if(thereIsViolations(operation)) {
+				
+				Optional<String> accountNotInitializedViolation = getViolationByRestriction(operations.get(0), "account-not-initialized");
+				
+				if(accountNotInitializedViolation.isPresent()) {
+					System.out.println(
+						String.format(
+							"{\"account\": {}, \"violations\": %s}", 
+							operation.getViolations().toString()
+						)
+					);
+				}else {
+					account.showStateWithViolations(operation.getViolations());
+				}
+				
+			}else {
+				
+				if (operation instanceof CreateAccount) {
+					CreateAccount createAccount = (CreateAccount) operation;
+					account.initializeAccount(createAccount.isActiveCard(), createAccount.getAvailableLimit());
+					account.showState();
+				}
+				
+				if (operation instanceof Transaction) {
+					Transaction transaction = (Transaction) operation;
+					account.processTransaction(transaction);
+					account.showState();
+				}
+				
+			}
+			
+		}
+	}
+	
+	private Optional<String> getViolationByRestriction(Operation operation, String restriction) {
+		return operation.getViolations().stream().filter(v -> v.equalsIgnoreCase(restriction)).findFirst();
+	}
+
+	private boolean thereIsViolations(Operation operation) {
+		return !operation.getViolations().isEmpty();
 	}
 
 }

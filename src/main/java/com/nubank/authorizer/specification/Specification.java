@@ -6,6 +6,6 @@ import com.nubank.operations.Operation;
 
 public interface Specification {
 	
-	public void aplyValidations(List<Operation> operations);
+	public void applyValidatons(List<Operation> operations);
 
 }

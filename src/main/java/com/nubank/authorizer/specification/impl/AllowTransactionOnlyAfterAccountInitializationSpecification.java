@@ -10,7 +10,7 @@ import com.nubank.operations.transaction.Transaction;
 public class AllowTransactionOnlyAfterAccountInitializationSpecification implements Specification {
 
 	@Override
-	public void aplyValidations(List<Operation> operations) {
+	public void applyValidatons(List<Operation> operations) {
 		
 		boolean accountInitialized = false;
 
@@ -22,7 +22,7 @@ public class AllowTransactionOnlyAfterAccountInitializationSpecification impleme
 			if (operation instanceof Transaction && !accountInitialized) {
 				operation.addViolation(operation, "account-not-initialized");
 			}
-			
+
 		}
 		
 	}

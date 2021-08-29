@@ -8,6 +8,4 @@ public interface Operation {
 	
 	public Operation addViolation(Operation operation, String violation);
 	
-	public void showValidationResult();
-	
 }

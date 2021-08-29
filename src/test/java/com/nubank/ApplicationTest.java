@@ -13,6 +13,7 @@ import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.nubank.account.Account;
 import com.nubank.authorizer.Authorizer;
 import com.nubank.authorizer.specification.AuthorizerSpecifications;
 import com.nubank.operations.Operation;
@@ -45,8 +46,8 @@ public class ApplicationTest {
 		
 		assertEquals("com.nubank.operations.create.account.CreateAccount", operations.get(0).getClass().getName());
 		CreateAccount createAccount = (CreateAccount) operations.get(0);
-		assertTrue(createAccount.isActive_card());
-		assertEquals(100, createAccount.getAvailable_limit());
+		assertTrue(createAccount.isActiveCard());
+		assertEquals(100, createAccount.getAvailableLimit());
 		
 		assertEquals("com.nubank.operations.transaction.Transaction", operations.get(1).getClass().getName());
 		Transaction firstTransaction = (Transaction) operations.get(1);
@@ -75,8 +76,19 @@ public class ApplicationTest {
 
 		List<Operation> operations = loadOperations(operationsInput);
 		
+		Account account = new Account();
+		
+		Authorizer authorizer = new Authorizer(
+			new AuthorizerSpecifications(),
+			account
+		);
+		
+		authorizer.applyValidations(operations);
+		
 		assertNotNull(operations);
 		assertTrue(operations.stream().noneMatch(o -> o.getViolations().size() > 0));
+		assertEquals(750, account.getAvailableLimit());
+		
 	}
 	
 	@Test
@@ -88,8 +100,11 @@ public class ApplicationTest {
 
 		List<Operation> operations = loadOperations(operationsInput);
 		
+		Account account = new Account();
+		
 		Authorizer authorizer = new Authorizer(
-			new AuthorizerSpecifications()
+			new AuthorizerSpecifications(),
+			account
 		);
 		
 		authorizer.applyValidations(operations);
@@ -99,27 +114,57 @@ public class ApplicationTest {
 		
 		assertTrue(violation.isPresent());
 		assertFalse(operations.stream().noneMatch(o -> o.getViolations().size() > 0));
+		assertEquals(175, account.getAvailableLimit());
 	}
 
 	@Test
-	public void assertThatTransactionWithoutAccountInitializationHasViolation() {
+	public void givenAnAccountWithActiveCardAndAtransactionWithAmountLessThanAccountAvailableCreditAllowTransaction() {
 		List<String> operationsInput = Arrays.asList(
-			"{\"transaction\": {\"merchant\": \"Burger King\", \"amount\": 20, \"time\": \"2019-02-13T10:00:00.000Z\"}}"
+			"{\"account\": {\"active-card\": true, \"available-limit\": 100}}",
+			"{\"transaction\": {\"merchant\": \"Burger King\", \"amount\": 20, \"time\": \"2019-02-13T11:00:00.000Z\"}}"
 		);
 
 		List<Operation> operations = loadOperations(operationsInput);
 		
+		Account account = new Account();
+		
 		Authorizer authorizer = new Authorizer(
-			new AuthorizerSpecifications()
+			new AuthorizerSpecifications(),
+			account
 		);
 		
 		authorizer.applyValidations(operations);
 		
-		Operation operation = getFirstOperationWithViolations(operations);
-		Optional<String> violation = getViolationByRestriction(operation, "account-not-initialized");
+		assertNotNull(operations);
+		assertTrue(operations.stream().noneMatch(o -> o.getViolations().size() > 0));
+		assertEquals(80, account.getAvailableLimit());
+	}
+	
+	@Test
+	public void assertThatTransactionWithoutAccountInitializationHasViolation() {
+		List<String> operationsInput = Arrays.asList(
+			"{\"transaction\": {\"merchant\": \"Uber Eats\", \"amount\": 25, \"time\": \"2020-12-01T11:07:00.000Z\"}}",
+			"{\"account\": {\"active-card\": true, \"available-limit\": 225}}",
+			"{\"transaction\": {\"merchant\": \"Uber Eats\", \"amount\": 25, \"time\": \"2020-12-01T11:07:00.000Z\"}}"
+		);
+
+		List<Operation> operations = loadOperations(operationsInput);
+		
+		Account account = new Account();
+		
+		Authorizer authorizer = new Authorizer(
+			new AuthorizerSpecifications(),
+			account
+		);
+		
+		authorizer.applyValidations(operations);
+		
+		Optional<String> violation = getViolationByRestriction(operations.get(0), "account-not-initialized");
 		
 		assertTrue(violation.isPresent());
-		assertFalse(operations.stream().noneMatch((o -> o.getViolations().size() > 0)));
+		assertTrue(operations.get(1).getViolations().isEmpty());
+		assertTrue(operations.get(2).getViolations().isEmpty());
+		assertEquals(200, account.getAvailableLimit());
 	}
 
 	private List<Operation> loadOperations(List<String> operationsInput) {

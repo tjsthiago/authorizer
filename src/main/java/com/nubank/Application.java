@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.nubank.account.Account;
 import com.nubank.authorizer.Authorizer;
 import com.nubank.authorizer.specification.AuthorizerSpecifications;
 import com.nubank.authorizer.specification.SpecificationBuilder;
@@ -16,11 +17,13 @@ public class Application {
 	private OperationParser operationParser;
 	private SpecificationBuilder specification;
 	private Authorizer authorizer;
+	private Account account;
 	
 	public Application() {
 		operationParser = new OperationParser();
 		specification = new AuthorizerSpecifications();
-		authorizer = new Authorizer(specification);
+		account = new Account();
+		authorizer = new Authorizer(specification, account);
 	}
 	
 	public void applyValidations(List<String> operationsInput) {

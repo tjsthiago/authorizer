@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.nubank.operations.Operation;
@@ -59,10 +58,6 @@ public class Transaction implements Operation{
 			transaction.getTime(),
 			currentViolations
 		);
-	}
-	
-	public void showValidationResult() {
-		System.out.println(new Gson().toJson(this));
 	}
 
 }
