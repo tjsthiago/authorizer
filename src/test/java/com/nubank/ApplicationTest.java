@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -75,7 +76,7 @@ public class ApplicationTest {
 		List<Operation> operations = loadOperations(operationsInput);
 		
 		assertNotNull(operations);
-		assertTrue(operations.stream().noneMatch((o -> o.getViolations().size() > 0)));
+		assertTrue(operations.stream().noneMatch(o -> o.getViolations().size() > 0));
 	}
 	
 	@Test
@@ -93,6 +94,31 @@ public class ApplicationTest {
 		
 		authorizer.applyValidations(operations);
 		
+		Operation operation = getFirstOperationWithViolations(operations);
+		Optional<String> violation = getViolationByRestriction(operation, "accountalready-initialized");
+		
+		assertTrue(violation.isPresent());
+		assertFalse(operations.stream().noneMatch(o -> o.getViolations().size() > 0));
+	}
+
+	@Test
+	public void assertThatTransactionWithoutAccountInitializationHasViolation() {
+		List<String> operationsInput = Arrays.asList(
+			"{\"transaction\": {\"merchant\": \"Burger King\", \"amount\": 20, \"time\": \"2019-02-13T10:00:00.000Z\"}}"
+		);
+
+		List<Operation> operations = loadOperations(operationsInput);
+		
+		Authorizer authorizer = new Authorizer(
+			new AuthorizerSpecifications()
+		);
+		
+		authorizer.applyValidations(operations);
+		
+		Operation operation = getFirstOperationWithViolations(operations);
+		Optional<String> violation = getViolationByRestriction(operation, "account-not-initialized");
+		
+		assertTrue(violation.isPresent());
 		assertFalse(operations.stream().noneMatch((o -> o.getViolations().size() > 0)));
 	}
 
@@ -101,6 +127,14 @@ public class ApplicationTest {
 		operationsInput.stream().forEach(operation -> operations.add(operationParser.parse(operation)));
 		
 		return operations;
+	}
+	
+	private Optional<String> getViolationByRestriction(Operation operation, String restriction) {
+		return operation.getViolations().stream().filter(v -> v.equalsIgnoreCase(restriction)).findFirst();
+	}
+
+	private Operation getFirstOperationWithViolations(List<Operation> operations) {
+		return operations.stream().filter(o -> o.getViolations().size() > 0).findFirst().get();
 	}
 	
 }

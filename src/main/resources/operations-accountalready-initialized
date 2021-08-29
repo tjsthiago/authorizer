@@ -1,2 +1,1 @@
-{"account": {"active-card": true, "available-limit": 175}}
-{"account": {"active-card": true, "available-limit": 350}}
+{"transaction": {"merchant": "Burger King", "amount": 20, "time": "2019-02-13T10:00:00.000Z"}}

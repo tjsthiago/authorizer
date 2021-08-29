@@ -24,6 +24,13 @@ public class Transaction implements Operation{
 		this.violations = new ArrayList<>();
 	}
 
+	public Transaction(String merchant, int amount, Date time, List<String> violations) {
+		this.merchant = merchant;
+		this.amount = amount;
+		this.time = time;
+		this.violations = violations;
+	}
+
 	public String getMerchant() {
 		return merchant;
 	}
@@ -42,7 +49,16 @@ public class Transaction implements Operation{
 
 	@Override
 	public Operation addViolation(Operation operation, String violation) {
-		return null;
+		Transaction transaction = (Transaction) operation;
+		List<String> currentViolations = transaction.getViolations();
+		currentViolations.add(violation);
+		
+		return new Transaction(
+			transaction.getMerchant(), 
+			transaction.getAmount(), 
+			transaction.getTime(),
+			currentViolations
+		);
 	}
 	
 	public void showValidationResult() {
