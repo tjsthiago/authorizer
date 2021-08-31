@@ -370,6 +370,42 @@ public class ApplicationTest {
 		assertEquals("004", twoMInutesPreviousOperationsFromTransactionTime.get(1).getMerchant());
 	}
 	
+	@Test
+	public void assertThatEachOperationThatViolatesMoreThanOneRuleHaveMoreThanOneViolation() {
+		List<String> operationsInput = Arrays.asList(
+			"{\"account\": {\"active-card\": true, \"available-limit\": 100}}",
+			"{\"transaction\": {\"merchant\": \"McDonald's\", \"amount\": 10, \"time\": \"2019-02-13T11:00:01.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"Burger King\", \"amount\": 20, \"time\": \"2019-02-13T11:00:02.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"Burger King\", \"amount\": 5, \"time\": \"2019-02-13T11:00:07.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"Burger King\", \"amount\": 5, \"time\": \"2019-02-13T11:00:08.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"Burger King\", \"amount\": 150, \"time\": \"2019-02-13T11:00:18.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"Burger King\", \"amount\": 190, \"time\": \"2019-02-13T11:00:22.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"Burger King\", \"amount\": 15, \"time\": \"2019-02-13T12:00:27.000Z\"}}"
+		);
+
+		List<Operation> operations = loadOperations(operationsInput);
+		
+		Account account = new Account();
+		
+		Authorizer authorizer = new Authorizer(
+			new AuthorizerSpecificationsBuilder(),
+			account
+		);
+		
+		authorizer.applyValidations(operations);
+		
+		assertEquals(0, operations.get(0).getViolations().size());
+		assertEquals(0, operations.get(1).getViolations().size());
+		assertEquals(0, operations.get(2).getViolations().size());
+		assertEquals(0, operations.get(3).getViolations().size());
+		
+		assertEquals(2, operations.get(4).getViolations().size());
+		assertEquals(2, operations.get(5).getViolations().size());
+		assertEquals(2, operations.get(6).getViolations().size());
+		
+		assertEquals(0, operations.get(7).getViolations().size());
+	}
+	
 	private long getDiferenceInSecondsBetweenTransactions(Date previousTransactionTime, Date currentTransactionTime) {
 		return DateUtils.getDiferenceInSecondsBetweenTwoDates(previousTransactionTime, currentTransactionTime);
 	}
