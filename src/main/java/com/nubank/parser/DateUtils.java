@@ -10,7 +10,7 @@ public class DateUtils {
 	public static Date convertStringToDate(String dateAsString) {
 		Date date = null;
 		try {
-			date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm").parse(dateAsString);
+			date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(dateAsString);
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}

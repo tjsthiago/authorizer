@@ -37,7 +37,7 @@ public class HighFrequencySmalIntervalSpecification implements Specification {
 				if(minimumDifferenceBetweenTransactionsInSecondsViolated(minimumDifferenceBetweenTransactionsInSeconds, diferenceInSecondsBetweenTwoDates)) {
 					highFrequencySmalIntervalOperations ++;
 				}else {
-					highFrequencySmalIntervalOperations = 0;
+					highFrequencySmalIntervalOperations = 1;
 				}
 				
 				if(allowedHighFrequencySmalIntervalOperationsExceded(allowedHighFrequencySmalIntervalOperations, highFrequencySmalIntervalOperations)) {

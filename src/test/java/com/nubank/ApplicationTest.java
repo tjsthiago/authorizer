@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -279,6 +281,109 @@ public class ApplicationTest {
 		long diferenceInSecondsBetweenTwoDates = DateUtils.getDiferenceInSecondsBetweenTwoDates(firstDate, secondDate);
 		
 		assertTrue(diferenceInSecondsBetweenTwoDates > secondsInTwoMinutes);
+	}
+	
+	@Test
+	public void assertThatOneOperationWithSameMerchantAndAmountInLessThanTwoMinutesHasDoubledTransactionViolation() {
+		List<String> operationsInput = Arrays.asList(
+			"{\"account\": {\"active-card\": true, \"available-limit\": 100}}",
+			"{\"transaction\": {\"merchant\": \"Burger King\", \"amount\": 20, \"time\": \"2019-02-13T11:00:00.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"McDonald's\", \"amount\": 10, \"time\": \"2019-02-13T11:00:01.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"Burger King\", \"amount\": 20, \"time\": \"2019-02-13T11:00:02.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"Burger King\", \"amount\": 15, \"time\": \"2019-02-13T12:00:03.000Z\"}}"
+		);
+
+		List<Operation> operations = loadOperations(operationsInput);
+		
+		Account account = new Account();
+		
+		Authorizer authorizer = new Authorizer(
+			new AuthorizerSpecificationsBuilder(),
+			account
+		);
+		
+		authorizer.applyValidations(operations);
+		Optional<String> operationWithDoubleOperationViolation = getViolationByRestriction(operations.get(3), "doubled-transaction");
+		
+		assertTrue(operations.get(0).getViolations().isEmpty());
+		assertTrue(operations.get(1).getViolations().isEmpty());
+		assertTrue(operations.get(2).getViolations().isEmpty());
+		
+		assertFalse(operations.get(3).getViolations().isEmpty());
+		assertTrue(operationWithDoubleOperationViolation.isPresent());
+		
+		assertTrue(operations.get(4).getViolations().isEmpty());
+	}
+	
+	@Test
+	public void getPreviousOperationsFromTransactionTime() {
+		List<String> operationsInput = Arrays.asList(
+			"{\"transaction\": {\"merchant\": \"001\", \"amount\": 20, \"time\": \"2019-02-13T11:00:00.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"002\", \"amount\": 10, \"time\": \"2019-02-13T11:00:01.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"003\", \"amount\": 20, \"time\": \"2019-02-13T11:00:02.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"004\", \"amount\": 15, \"time\": \"2019-02-13T11:00:03.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"005\", \"amount\": 15, \"time\": \"2019-02-13T11:00:04.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"006\", \"amount\": 15, \"time\": \"2019-02-13T11:00:05.000Z\"}}"
+		);
+
+		List<Operation> operations = loadOperations(operationsInput);
+		
+		List<Transaction> transactions = getTransactionOerations(operations);
+		
+		Transaction currentTransaction = transactions.get(4);
+		
+		List<Transaction> beforeTransactions = transactions
+				.stream()
+				.filter(isBeforeCurrentTransaction(currentTransaction))
+				.collect(Collectors.toList());
+		
+		assertEquals(4, beforeTransactions.size());
+	}
+	
+	@Test
+	public void getTwoMInutesPreviousOperationsFromTransactionTime() {
+		List<String> operationsInput = Arrays.asList(
+			"{\"transaction\": {\"merchant\": \"001\", \"amount\": 20, \"time\": \"2019-02-13T10:00:00.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"002\", \"amount\": 10, \"time\": \"2019-02-13T10:00:01.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"003\", \"amount\": 20, \"time\": \"2019-02-13T11:00:01.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"004\", \"amount\": 15, \"time\": \"2019-02-13T11:00:02.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"005\", \"amount\": 15, \"time\": \"2019-02-13T11:00:03.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"006\", \"amount\": 15, \"time\": \"2019-02-13T11:00:05.000Z\"}}"
+		);
+
+		List<Operation> operations = loadOperations(operationsInput);
+		
+		List<Transaction> transactions = getTransactionOerations(operations);
+		
+		Transaction currentTransaction = transactions.get(4);
+		
+		Date currentTransactionTime = currentTransaction.getTime();
+		long twoMinutesInSeconds = 120;
+		
+		List<Transaction> twoMInutesPreviousOperationsFromTransactionTime = transactions
+				.stream()
+				.filter(isBeforeCurrentTransaction(currentTransaction))
+				.filter(t -> getDiferenceInSecondsBetweenTransactions(t.getTime(), currentTransactionTime) < twoMinutesInSeconds)
+				.collect(Collectors.toList());
+		
+		assertEquals("003", twoMInutesPreviousOperationsFromTransactionTime.get(0).getMerchant());
+		assertEquals("004", twoMInutesPreviousOperationsFromTransactionTime.get(1).getMerchant());
+	}
+	
+	private long getDiferenceInSecondsBetweenTransactions(Date previousTransactionTime, Date currentTransactionTime) {
+		return DateUtils.getDiferenceInSecondsBetweenTwoDates(previousTransactionTime, currentTransactionTime);
+	}
+	
+	private Predicate<? super Transaction> isBeforeCurrentTransaction(Transaction currentTransaction) {
+		return t -> currentTransaction.getTime().compareTo(t.getTime()) > 0;
+	}
+	
+	private List<Transaction> getTransactionOerations(List<Operation> operations) {
+		return operations.stream().filter(isTransactionOperation()).map(o -> (Transaction) o).collect(Collectors.toList());
+	}
+	
+	private Predicate<? super Operation> isTransactionOperation() {
+		return o -> o instanceof Transaction;
 	}
 
 	private List<Operation> loadOperations(List<String> operationsInput) {
