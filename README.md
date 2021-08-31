@@ -42,7 +42,7 @@ To keep easy test the application running the ***authorizer.jar*** I let differe
 To run the application with a different list of operations you can use the command below.
 
 ```
-cat ./src/main/resources/***<file-name>*** | java -jar ./target/authorizer.jar
+cat ./src/main/resources/<file-name> | java -jar ./target/authorizer.jar
 ```
 
 
