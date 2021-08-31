@@ -2,7 +2,7 @@ package com.nubank.account;
 
 import java.util.List;
 
-import com.nubank.operations.transaction.Transaction;
+import com.nubank.operations.Transaction;
 
 public class Account {
 	private boolean activeCard;

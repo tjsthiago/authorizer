@@ -2,9 +2,9 @@ package com.nubank.parser;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.nubank.operations.CreateAccount;
 import com.nubank.operations.Operation;
-import com.nubank.operations.create.account.CreateAccount;
-import com.nubank.operations.transaction.Transaction;
+import com.nubank.operations.Transaction;
 
 public class OperationParser {
 	

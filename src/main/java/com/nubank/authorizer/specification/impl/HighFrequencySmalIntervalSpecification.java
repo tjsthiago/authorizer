@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 import com.nubank.authorizer.specification.Specification;
 import com.nubank.operations.Operation;
-import com.nubank.operations.transaction.Transaction;
+import com.nubank.operations.Transaction;
 import com.nubank.parser.DateUtils;
 
 public class HighFrequencySmalIntervalSpecification implements Specification {
@@ -29,12 +29,12 @@ public class HighFrequencySmalIntervalSpecification implements Specification {
 				previousTransactionTime = getPreviousTransactionTime(transactions, i);
 				Date currentTransactionTime = currentTransaction.getTime();
 				
-				long diferenceInSecondsBetweenTwoDates = getDiferenceInSecondsBetweenTransactions(
+				long diferenceBetweenTwoDatesInSeconds = getDiferenceBetweenTransactionsInSeconds(
 					previousTransactionTime, 
 					currentTransactionTime
 				);
 				
-				if(minimumDifferenceBetweenTransactionsInSecondsViolated(minimumDifferenceBetweenTransactionsInSeconds, diferenceInSecondsBetweenTwoDates)) {
+				if(isMinimumDifferenceBetweenTransactionsInSecondsViolated(minimumDifferenceBetweenTransactionsInSeconds, diferenceBetweenTwoDatesInSeconds)) {
 					highFrequencySmalIntervalOperations ++;
 				}else {
 					highFrequencySmalIntervalOperations = 1;
@@ -49,7 +49,7 @@ public class HighFrequencySmalIntervalSpecification implements Specification {
 		
 	}
 
-	private boolean minimumDifferenceBetweenTransactionsInSecondsViolated(long minimumDifferenceBetweenTransactionsInSeconds, long diferenceInSecondsBetweenTwoDates) {
+	private boolean isMinimumDifferenceBetweenTransactionsInSecondsViolated(long minimumDifferenceBetweenTransactionsInSeconds, long diferenceInSecondsBetweenTwoDates) {
 		return diferenceInSecondsBetweenTwoDates < minimumDifferenceBetweenTransactionsInSeconds;
 	}
 
@@ -57,7 +57,7 @@ public class HighFrequencySmalIntervalSpecification implements Specification {
 		return highFrequencySmalIntervalOperations > allowedHighFrequencySmalIntervalOperations;
 	}
 
-	private long getDiferenceInSecondsBetweenTransactions(Date previousTransactionTime, Date currentTransactionTime) {
+	private long getDiferenceBetweenTransactionsInSeconds(Date previousTransactionTime, Date currentTransactionTime) {
 		return DateUtils.getDiferenceInSecondsBetweenTwoDates(previousTransactionTime, currentTransactionTime);
 	}
 

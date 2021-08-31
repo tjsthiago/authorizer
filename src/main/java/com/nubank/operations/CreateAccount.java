@@ -1,11 +1,10 @@
-package com.nubank.operations.create.account;
+package com.nubank.operations;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.nubank.operations.Operation;
 
 public class CreateAccount implements Operation{
 	private boolean activeCard;

@@ -5,9 +5,9 @@ import java.util.Optional;
 
 import com.nubank.account.Account;
 import com.nubank.authorizer.specification.SpecificationsBuilder;
+import com.nubank.operations.CreateAccount;
 import com.nubank.operations.Operation;
-import com.nubank.operations.create.account.CreateAccount;
-import com.nubank.operations.transaction.Transaction;
+import com.nubank.operations.Transaction;
 
 public class Authorizer {
 	private Account account;

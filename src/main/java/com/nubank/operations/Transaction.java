@@ -1,4 +1,4 @@
-package com.nubank.operations.transaction;
+package com.nubank.operations;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -6,7 +6,6 @@ import java.util.List;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.nubank.operations.Operation;
 import com.nubank.parser.DateUtils;
 
 public class Transaction implements Operation{

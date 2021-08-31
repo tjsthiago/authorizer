@@ -6,7 +6,7 @@ import java.util.Set;
 import com.nubank.authorizer.specification.impl.AllowOnlyOneAccountSpecification;
 import com.nubank.authorizer.specification.impl.AllowTransactionOnlyAfterAccountInitializationSpecification;
 import com.nubank.authorizer.specification.impl.AllowTransactionOnlyWhenAccountHasActiveCardSpecification;
-import com.nubank.authorizer.specification.impl.AllowTransactionOnlyWithInsEnoughLimit;
+import com.nubank.authorizer.specification.impl.AllowTransactionOnlyWithEnoughLimit;
 import com.nubank.authorizer.specification.impl.DoubledTransactionSpecification;
 import com.nubank.authorizer.specification.impl.HighFrequencySmalIntervalSpecification;
 
@@ -23,7 +23,7 @@ public class AuthorizerSpecificationsBuilder implements SpecificationsBuilder{
 		specifications.add(new AllowOnlyOneAccountSpecification());
 		specifications.add(new AllowTransactionOnlyAfterAccountInitializationSpecification());
 		specifications.add(new AllowTransactionOnlyWhenAccountHasActiveCardSpecification());
-		specifications.add(new AllowTransactionOnlyWithInsEnoughLimit());
+		specifications.add(new AllowTransactionOnlyWithEnoughLimit());
 		specifications.add(new HighFrequencySmalIntervalSpecification());
 		specifications.add(new DoubledTransactionSpecification());
 		

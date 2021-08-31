@@ -26,11 +26,6 @@ public class Application {
 		authorizer = new Authorizer(specification, account);
 	}
 	
-	public void applyValidations(List<String> operationsInput) {
-		List<Operation> operations = parseOperations(operationsInput);
-		authorizer.applyValidations(operations);
-	}
-
 	public static void main(String[] args) throws IOException {
 		Application application = new Application();
 
@@ -41,6 +36,11 @@ public class Application {
 			e.printStackTrace();
 		}
 
+	}
+	
+	public void applyValidations(List<String> operationsInput) {
+		List<Operation> operations = parseOperations(operationsInput);
+		authorizer.applyValidations(operations);
 	}
 
 	private List<String> loadOperationsFromStdIn(BufferedReader bufferedReader) throws IOException {

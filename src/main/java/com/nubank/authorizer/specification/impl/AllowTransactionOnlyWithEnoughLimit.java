@@ -6,11 +6,11 @@ import java.util.function.Predicate;
 
 import com.nubank.account.Account;
 import com.nubank.authorizer.specification.Specification;
+import com.nubank.operations.CreateAccount;
 import com.nubank.operations.Operation;
-import com.nubank.operations.create.account.CreateAccount;
-import com.nubank.operations.transaction.Transaction;
+import com.nubank.operations.Transaction;
 
-public class AllowTransactionOnlyWithInsEnoughLimit implements Specification {
+public class AllowTransactionOnlyWithEnoughLimit implements Specification {
 
 	@Override
 	public void applyValidatons(List<Operation> operations) {

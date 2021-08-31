@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 import com.nubank.authorizer.specification.Specification;
 import com.nubank.operations.Operation;
-import com.nubank.operations.transaction.Transaction;
+import com.nubank.operations.Transaction;
 import com.nubank.parser.DateUtils;
 
 public class DoubledTransactionSpecification implements Specification{
@@ -19,7 +19,10 @@ public class DoubledTransactionSpecification implements Specification{
 		
 		for (Transaction currentTransaction : transactions) {
 			
-			List<Transaction> transactionsOccurredTwoMinutesAgoOfCurrentTransaction = getTransactionsOccurredTwoMinutesAgoOfCurrentTransaction(currentTransaction, transactions);
+			List<Transaction> transactionsOccurredTwoMinutesAgoOfCurrentTransaction = getTransactionsOccurredTwoMinutesAgoOfCurrentTransaction(
+				currentTransaction, 
+				transactions
+			);
 			
 			if(thereIsDoubleTransaction(currentTransaction, transactionsOccurredTwoMinutesAgoOfCurrentTransaction)) {
 				currentTransaction.addViolation(currentTransaction, "doubled-transaction");
@@ -45,8 +48,12 @@ public class DoubledTransactionSpecification implements Specification{
 		return transactions
 				.stream()
 				.filter(isBeforeCurrentTransaction(currentTransaction))
-				.filter(t -> getDiferenceInSecondsBetweenTransactions(t.getTime(), currentTransactionTime) < doubleTransactionTimeWindowInSeconds)
+				.filter(isBeforeDoubleTransactionTimeWindow(currentTransactionTime, doubleTransactionTimeWindowInSeconds))
 				.collect(Collectors.toList());
+	}
+
+	private Predicate<? super Transaction> isBeforeDoubleTransactionTimeWindow(Date currentTransactionTime, long doubleTransactionTimeWindowInSeconds) {
+		return t -> getDiferenceInSecondsBetweenTransactions(t.getTime(), currentTransactionTime) < doubleTransactionTimeWindowInSeconds;
 	}
 	
 	private Predicate<? super Transaction> isBeforeCurrentTransaction(Transaction currentTransaction) {

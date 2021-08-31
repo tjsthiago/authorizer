@@ -19,9 +19,9 @@ import org.junit.Test;
 import com.nubank.account.Account;
 import com.nubank.authorizer.Authorizer;
 import com.nubank.authorizer.specification.AuthorizerSpecificationsBuilder;
+import com.nubank.operations.CreateAccount;
 import com.nubank.operations.Operation;
-import com.nubank.operations.create.account.CreateAccount;
-import com.nubank.operations.transaction.Transaction;
+import com.nubank.operations.Transaction;
 import com.nubank.parser.DateUtils;
 import com.nubank.parser.OperationParser;
 
@@ -47,24 +47,24 @@ public class ApplicationTest {
 		
 		assertNotNull(operations);
 		
-		assertEquals("com.nubank.operations.create.account.CreateAccount", operations.get(0).getClass().getName());
+		assertEquals("com.nubank.operations.CreateAccount", operations.get(0).getClass().getName());
 		CreateAccount createAccount = (CreateAccount) operations.get(0);
 		assertTrue(createAccount.isActiveCard());
 		assertEquals(100, createAccount.getAvailableLimit());
 		
-		assertEquals("com.nubank.operations.transaction.Transaction", operations.get(1).getClass().getName());
+		assertEquals("com.nubank.operations.Transaction", operations.get(1).getClass().getName());
 		Transaction firstTransaction = (Transaction) operations.get(1);
 		assertEquals("Burger King", firstTransaction.getMerchant());
 		assertEquals(20, firstTransaction.getAmount());
 		assertEquals(DateUtils.convertStringToDate("2019-02-13T10:00:00.000Z"), firstTransaction.getTime());
 		
-		assertEquals("com.nubank.operations.transaction.Transaction", operations.get(2).getClass().getName());
+		assertEquals("com.nubank.operations.Transaction", operations.get(2).getClass().getName());
 		Transaction secondTransaction = (Transaction) operations.get(2);
 		assertEquals("Habbib's", secondTransaction.getMerchant());
 		assertEquals(90, secondTransaction.getAmount());
 		assertEquals(DateUtils.convertStringToDate("2019-02-13T11:00:00.000Z"), secondTransaction.getTime());
 		
-		assertEquals("com.nubank.operations.transaction.Transaction", operations.get(3).getClass().getName());
+		assertEquals("com.nubank.operations.Transaction", operations.get(3).getClass().getName());
 		Transaction thirdTransaction = (Transaction) operations.get(3);
 		assertEquals("McDonald's", thirdTransaction.getMerchant());
 		assertEquals(30, thirdTransaction.getAmount());

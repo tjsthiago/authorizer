@@ -3,8 +3,8 @@ package com.nubank.authorizer.specification.impl;
 import java.util.List;
 
 import com.nubank.authorizer.specification.Specification;
+import com.nubank.operations.CreateAccount;
 import com.nubank.operations.Operation;
-import com.nubank.operations.create.account.CreateAccount;
 
 public class AllowOnlyOneAccountSpecification implements Specification {
 
