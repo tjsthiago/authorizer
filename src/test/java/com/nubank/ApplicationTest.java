@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -222,6 +223,62 @@ public class ApplicationTest {
 		assertTrue(transactionTwoViolation.isPresent());
 		assertFalse(transactionThreeViolation.isPresent());
 		assertEquals(200, account.getAvailableLimit());
+	}
+	
+	@Test
+	public void assertThatFourthRequestProcessedWithinTwoMinutesOfPreviousOperationContainsHighFrequencySmalIntervalViolation() {
+		List<String> operationsInput = Arrays.asList(
+			"{\"account\": {\"active-card\": true, \"available-limit\": 100}}",
+			"{\"transaction\": {\"merchant\": \"Burger King\", \"amount\": 20, \"time\": \"2019-02-13T11:00:00.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"Habbib's\", \"amount\": 20, \"time\": \"2019-02-13T11:00:01.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"McDonald's\", \"amount\": 20, \"time\": \"2019-02-13T11:01:01.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"Subway\", \"amount\": 20, \"time\": \"2019-02-13T11:01:31.000Z\"}}",
+			"{\"transaction\": {\"merchant\": \"Burger King\", \"amount\": 10, \"time\": \"2019-02-13T12:00:00.000Z\"}}"
+		);
+
+		List<Operation> operations = loadOperations(operationsInput);
+		
+		Account account = new Account();
+		
+		Authorizer authorizer = new Authorizer(
+			new AuthorizerSpecificationsBuilder(),
+			account
+		);
+		
+		authorizer.applyValidations(operations);
+		Optional<String> operationWithHighFrequencySmalIntervalViolation = getViolationByRestriction(operations.get(4), "high-frequency-small-interval");
+		
+		assertTrue(operations.get(0).getViolations().isEmpty());
+		assertTrue(operations.get(1).getViolations().isEmpty());
+		assertTrue(operations.get(2).getViolations().isEmpty());
+		assertTrue(operations.get(3).getViolations().isEmpty());
+		
+		assertFalse(operations.get(4).getViolations().isEmpty());
+		assertTrue(operationWithHighFrequencySmalIntervalViolation.isPresent());
+		
+		assertTrue(operations.get(5).getViolations().isEmpty());
+	}
+	
+	@Test
+	public void givemTwoDatesAssertThatDiferenceBetweenThemInSecondsIsLessThanTwoMInutes() {
+		Date firstDate = DateUtils.convertStringToDate("2019-02-13T11:00:01.000Z");
+		Date secondDate = DateUtils.convertStringToDate("2019-02-13T11:01:01.000Z");
+
+		long secondsInTwoMinutes = 120;
+		long diferenceInSecondsBetweenTwoDates = DateUtils.getDiferenceInSecondsBetweenTwoDates(firstDate, secondDate);
+		
+		assertTrue(diferenceInSecondsBetweenTwoDates < secondsInTwoMinutes);
+	}
+	
+	@Test
+	public void givemTwoDatesAssertThatDiferenceBetweenThemInSecondsIsBiggerThanTwoMInutes() {
+		Date firstDate = DateUtils.convertStringToDate("2019-02-13T11:00:00.000Z");
+		Date secondDate = DateUtils.convertStringToDate("2019-02-13T11:03:00.000Z");
+
+		long secondsInTwoMinutes = 120;
+		long diferenceInSecondsBetweenTwoDates = DateUtils.getDiferenceInSecondsBetweenTwoDates(firstDate, secondDate);
+		
+		assertTrue(diferenceInSecondsBetweenTwoDates > secondsInTwoMinutes);
 	}
 
 	private List<Operation> loadOperations(List<String> operationsInput) {
